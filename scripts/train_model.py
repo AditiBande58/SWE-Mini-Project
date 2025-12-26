@@ -22,7 +22,7 @@ X_train_s = scaler.fit_transform(X_train)
 X_val_s   = scaler.transform(X_val)
 X_test_s  = scaler.transform(X_test)
 
-clf = LogisticRegression(max_iter=1000, multi_class='multinomial')
+clf = LogisticRegression(max_iter=1000)
 clf.fit(X_train_s, y_train)
 
 print("Validation report:")

@@ -21,12 +21,9 @@ for label, group in df.groupby('control_label'):
             feat[f'{ch}_RMS'] = np.sqrt(np.mean(x**2))
             feat[f'{ch}_MAV'] = np.mean(np.abs(x))
             feat[f'{ch}_WL']  = np.sum(np.abs(np.diff(x)))
-            
-            # new lines
             feat[f'{ch}_VAR'] = np.var(x)
             feat[f'{ch}_ZCR'] = np.sum((x[:-1] * x[1:]) < 0)
             feat[f'{ch}_SSC'] = np.sum((dx[:-1] * dx[1:]) < 0)
-            # here
 
         feat['control_label'] = label
         features.append(feat)

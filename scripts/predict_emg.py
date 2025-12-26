@@ -1,14 +1,17 @@
 import pandas as pd
 import numpy as np
 import joblib
-
-raw_df = pd.read_csv(".csv") # Read in raw data
+from pathlib import Path
 
 WINDOW_SIZE = 200
 STEP = 50
 channel_prefix = "channel"
 
-def extract_features_from_df(df):
+ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = ROOT / "datasets"
+
+
+def extract_features_from_df(df: pd.DataFrame) -> pd.DataFrame:
     channel_cols = [c for c in df.columns if c.startswith(channel_prefix)]
     data = df[channel_cols].values
     n = len(data)
@@ -19,7 +22,7 @@ def extract_features_from_df(df):
 
         feat = {}
         for i, ch in enumerate(channel_cols):
-            x  = window[:, i]
+            x = window[:, i]
             dx = np.diff(x)
             feat[f'{ch}_RMS'] = np.sqrt(np.mean(x**2))
             feat[f'{ch}_MAV'] = np.mean(np.abs(x))
@@ -32,14 +35,25 @@ def extract_features_from_df(df):
 
     return pd.DataFrame(features)
 
-scaler = joblib.load("emg_3class_scaler.pkl")
-clf = joblib.load("emg_3class_logreg.pkl")
+SCALER_PATH = DATA_DIR / "emg_3class_scaler.pkl"
+CLF_PATH = DATA_DIR / "emg_3class_logreg.pkl"
 
-X_new = extract_features_from_df(raw_df)
-X_new_s = scaler.transform(X_new)
+scaler = joblib.load(SCALER_PATH)
+clf = joblib.load(CLF_PATH)
 
-y_pred = clf.predict(X_new_s)
-y_pred_proba = clf.predict_proba(X_new_s)
 
-X_new["pred_label"] = y_pred
-X_new.to_csv("filtered_emg_pred_windows.csv", index=False)
+# Take in raw EMG samples (df_window) and return predicted label for the window
+def predict_window(df_window: pd.DataFrame):
+    X_new = extract_features_from_df(df_window)
+
+    if X_new.empty:
+        return None, None
+
+    X_new_s = scaler.transform(X_new)
+    y_pred = clf.predict(X_new_s)
+    y_proba = clf.predict_proba(X_new_s)
+
+    labels_series = pd.Series(y_pred)
+    majority_label = labels_series.mode().iloc[0]
+
+    return majority_label, y_proba

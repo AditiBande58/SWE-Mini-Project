@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv("EMG-data.csv") 
+df = pd.read_csv("EMG-data-one-channel.csv") 
 
 # Mapping based on dataset description:
 # 2 - fist, 3 - wrist flexion, 4 - wrist extension
